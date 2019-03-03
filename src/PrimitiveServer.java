@@ -97,7 +97,7 @@ public class PrimitiveServer extends Observer {
         StringBuilder reply = new StringBuilder();
 
         for (String s : files) {
-            reply.append(s + "\n");
+            reply.append(s.substring(dir.toString().length()) + "\n");
         }
 
         System.out.println(System.getProperty("user.dir"));
