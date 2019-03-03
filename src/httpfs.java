@@ -6,7 +6,7 @@ public class httpfs {
 
     public static void main(String[] args) {
 
-        PrimitiveServer serv = new PrimitiveServer(8080);
+        PrimitiveServer serv = new PrimitiveServer(8080, Paths.get("F:/COMP 354"));
 
         try {
             serv.initialize();

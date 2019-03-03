@@ -1,5 +1,6 @@
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.FileSystems;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -11,8 +12,7 @@ import java.util.stream.Stream;
 public class PrimitiveServer extends Observer {
 
     private int DEFAULT_PORT = 8080;
-    private Path DEFAULT_DIR = Paths.get("");
-
+    private Path DEFAULT_DIR = FileSystems.getDefault().getPath("");
     private int port;
     private Path dir;
 
@@ -50,45 +50,40 @@ public class PrimitiveServer extends Observer {
     //operates the server
     public void initialize() throws IOException {
 
-        Signaller.attach(this); //register file server as listening to http server
-
-        PrimHTTPServer httpServer = new PrimHTTPServer(port);
-
+        HTTPServerResource.initializeServer(port, this);
 
     }
 
-    //get the appropriate signal and perform the desired operation
+
     @Override
-    public void update() {
+    public void update(String data) {
 
-        if (Signaller.currentSignal == Signaller.SIGNAL.GET) {
+        try {
 
+            if (data.equalsIgnoreCase("/")) {
 
+                this.subject.responseData = returnFilesInDir();
 
-        }
+                System.out.println(returnFilesInDir());
 
-        if (Signaller.currentSignal == Signaller.SIGNAL.POST) {
+                System.out.println(this.subject.toString());
 
-        }
+            } else {
 
-        if (Signaller.currentSignal == Signaller.SIGNAL.ROOT) {
+                this.subject.responseData = returnSpecificFileContent(data);
 
-            try {
-                returnFilesInDir();
-            } catch (IOException e) {
-                e.printStackTrace();
             }
 
+        } catch (IOException e) {
+            e.printStackTrace();
         }
 
     }
-
-
 
     //-- GET --
 
     //need to return all the files & directories in the parent directory that the server is operating in
-    private void returnFilesInDir() throws IOException {
+    private String returnFilesInDir() throws IOException {
 
         List<String> files = new LinkedList<>();
 
@@ -105,21 +100,25 @@ public class PrimitiveServer extends Observer {
             reply.append(s + "\n");
         }
 
-        RootHandler.writeRootResponse("Hello world!" + reply.toString());
+        System.out.println(System.getProperty("user.dir"));
+
+        return reply.toString();
 
     }
 
-    private void returnSpecificFileContent(String filename) {
+    private String returnSpecificFileContent(String filename) throws IOException {
 
-        //only want file in the working directory, nowhere else
-        File tmp = new File(dir.toString() + filename);
+        filename = filename.substring(1); //strip the / from it or it fucks up
 
-        if (!tmp.exists()) {
+        File tmp = new File(filename);
 
-            //TODO 404 STUB
+        if (tmp.exists()) {
+
+            System.out.println("Desired file: " +  filename);
+
         }
 
-        //TODO 200 OK STUB AND RETURN FILE CONTENT
+        return new String(Files.readAllBytes(Paths.get(filename)), "UTF-8");
 
     }
 
